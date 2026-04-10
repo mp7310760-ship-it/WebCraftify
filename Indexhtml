@@ -1,1 +1,77 @@
+LinguaBookHub (Full Code)
 
+📁 1. MainApplication.java
+
+package com.linguabookhub;
+
+import org.springframework.boot.SpringApplication; import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication public class MainApplication { public static void main(String[] args) { SpringApplication.run(MainApplication.class, args); } }
+
+📁 2. TranslateController.java
+
+package com.linguabookhub.controller;
+
+import org.springframework.web.bind.annotation.; import java.io.; import java.net.*;
+
+@RestController @RequestMapping("/api") @CrossOrigin public class TranslateController {
+
+@GetMapping("/translate")
+public String translate(@RequestParam String text) {
+    try {
+        String urlStr = "https://api.mymemory.translated.net/get?q="
+                + URLEncoder.encode(text, "UTF-8")
+                + "&langpair=hi|en";
+
+        URL url = new URL(urlStr);
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader(url.openStream()));
+
+        String output;
+        StringBuilder result = new StringBuilder();
+
+        while ((output = br.readLine()) != null) {
+            result.append(output);
+        }
+
+        return result.toString();
+
+    } catch (Exception e) {
+        return "Error: " + e.getMessage();
+    }
+}
+}
+
+📁 3. BookController.java
+
+package com.linguabookhub.controller;
+
+import org.springframework.web.bind.annotation.; import java.util.;
+
+@RestController @RequestMapping("/books") @CrossOrigin public class BookController {
+
+private List<String> books = new ArrayList<>();
+
+@PostMapping("/add")
+public String addBook(@RequestBody String book) {
+    books.add(book);
+    return "Book Added!";
+}
+
+@GetMapping("/all")
+public List<String> getBooks() {
+    return books;
+}
+}
+
+📁 4. index.html
+
+<title>LinguaBookHub</title>
+🌐 LinguaBookHub
+Language Converter
+Convert
+Publish Book
+<textarea id="book"></textarea> Publish
+All Books
+Listen Story
+<textarea id="storyText"></textarea> Play Audio <script> function translate() { let text = document.getElementById("text").value; fetch(`http://localhost:8080/api/translate?text=${text}`) .then(res => res.json()) .then(data => { document.getElementById("result").innerText = data.responseData.translatedText; }); } function addBook() { let book = document.getElementById("book").value; fetch("http://localhost:8080/books/add", { method: "POST", body: book }).then(() => loadBooks()); } function loadBooks() { fetch("http://localhost:8080/books/all") .then(res => res.json()) .then(data => { let list = document.getElementById("bookList"); list.innerHTML = ""; data.forEach(b => { let li = document.createElement("li"); li.innerText = b; list.appendChild(li); }); }); } function speak() { let text = document.getElementById("storyText").value; let speech = new SpeechSynthesisUtterance(text); speech.lang = "en-US"; window.speechSynthesis.speak
